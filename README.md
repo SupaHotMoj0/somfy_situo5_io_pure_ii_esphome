@@ -38,7 +38,8 @@
 
 <h2 id="introduction" style="text-align:left;">Introduction</h2>
 <p style="text-align:left;">
-  This repository shows how to <strong>mod</strong> a Somfy Situo 5 IO Pure II remote to be controlled by an ESP32.
+  Inspired by and derived from the code of:💐 @robvdw2 💐 <br>
+  This repository shows how to mod a Somfy Situo 5 IO Pure II remote to be controlled by an ESP32.
   By mapping the remote’s buttons to GPIO pins and reading LEDs (to detect active channels), you can seamlessly operate
   multiple shutters via <strong>ESPHome</strong>—all within <strong>Home Assistant</strong>.
 </p>

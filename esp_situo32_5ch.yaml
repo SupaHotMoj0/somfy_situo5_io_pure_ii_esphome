@@ -1,0 +1,173 @@
+###############################################################################
+# Multi-Channel Somfy Remote Controller (ESP32)
+# - Dynamic channel selection with feedback to Home Assistant
+###############################################################################
+
+substitutions:
+  device_name: esp32_multi_somfy
+
+# Core ESPHome setup
+esphome:
+  name: ${device_name}
+  platform: ESP32
+  board: nodemcu-32s
+
+###############################################################################
+# Networking & Integration
+###############################################################################
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+  ap:  # Fallback AP if Wi-Fi is unavailable
+    ssid: "${device_name} AP"
+    password: !secret fallback_pwd
+captive_portal:  # Required for fallback AP
+api:
+  encryption:
+    key: !secret api_key
+ota:
+  password: !secret ota_pwd
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_usr
+  password: !secret mqtt_pwd
+  topic_prefix: ${device_name}
+web_server:
+  port: 80
+  auth:
+    username: !secret web_usr
+    password: !secret web_pwd
+logger:  # Enable ESP logs
+
+###############################################################################
+# Scripts - Dynamic channel switching logic
+###############################################################################
+script:
+  - id: channel_1
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 1";'
+          then:
+            - switch.turn_on: select_channel
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 1"
+
+  - id: channel_2
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 2";'
+          then:
+            - switch.turn_on: select_channel
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 2"
+
+  - id: channel_3
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 3";'
+          then:
+            - switch.turn_on: select_channel
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 3"
+
+###############################################################################
+# Switches - GPIO mappings for Somfy buttons
+###############################################################################
+switch:
+  - platform: gpio
+    id: select_channel
+    pin:
+      number: GPIO32
+      inverted: yes
+    on_turn_on:
+      - delay: 100ms
+      - switch.turn_off: select_channel
+
+  - platform: gpio
+    id: up
+    pin:
+      number: GPIO25
+      inverted: yes
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: up
+
+  - platform: gpio
+    id: stop
+    pin:
+      number: GPIO27
+      inverted: yes
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: stop
+
+  - platform: gpio
+    id: down
+    pin:
+      number: GPIO26
+      inverted: yes
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: down
+
+###############################################################################
+# Sensors & Feedback - Monitor active channel via LED states
+###############################################################################
+binary_sensor:
+  - platform: gpio
+    id: led1
+    pin: GPIO36
+    inverted: yes
+
+  - platform: gpio
+    id: led2
+    pin: GPIO39
+    inverted: yes
+
+  - platform: gpio
+    id: led3
+    pin: GPIO34
+    inverted: yes
+
+text_sensor:
+  - platform: template
+    id: selected_channel
+    name: "Selected Channel"
+    update_interval: never
+
+###############################################################################
+# Covers - Define shutters for each channel
+###############################################################################
+cover:
+  - platform: template
+    name: "Channel 1 Shutter"
+    open_action:
+      - script.execute: channel_1
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: channel_1
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: channel_1
+      - switch.turn_on: down
+
+  - platform: template
+    name: "Channel 2 Shutter"
+    open_action:
+      - script.execute: channel_2
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: channel_2
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: channel_2
+      - switch.turn_on: down

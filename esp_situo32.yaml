@@ -1,0 +1,262 @@
+################## DEFAULT_CONFIG ##################
+api: !include _api.yaml                            #
+wifi: !include _wifi.yaml                          #
+captive_portal:                                    #
+ota: !include _ota.yaml                            #
+mqtt: !include _mqtt.yaml                          #
+web_server: !include _webserver.yaml               #
+logger:                                            #
+################## DEFAULT_CONFIG ##################
+
+substitutions:
+  device_name: nodemcu_test
+
+esphome:
+  name: ${device_name}
+  platform: ESP32
+  board: nodemcu-32s
+
+script:
+  - id: chnnl_1
+    then:
+      - while:
+          condition:
+            or:
+              - binary_sensor.is_off: led1
+              - binary_sensor.is_on: led2
+              - binary_sensor.is_on: led3
+              - binary_sensor.is_on: led4
+          then:
+            - switch.turn_on: slct
+            - delay: 250ms
+
+  - id: chnnl_2
+    then:
+      - while:
+          condition:
+            or:
+              - binary_sensor.is_on: led1
+              - binary_sensor.is_off: led2
+              - binary_sensor.is_on: led3
+              - binary_sensor.is_on: led4
+          then:
+            - switch.turn_on: slct
+            - delay: 250ms
+
+  - id: chnnl_3
+    then:
+      - while:
+          condition:
+            or:
+              - binary_sensor.is_on: led1
+              - binary_sensor.is_on: led2
+              - binary_sensor.is_off: led3
+              - binary_sensor.is_on: led4
+          then:
+            - switch.turn_on: slct
+            - delay: 250ms
+
+  - id: chnnl_4
+    then:
+      - while:
+          condition:
+            or:
+              - binary_sensor.is_on: led1
+              - binary_sensor.is_on: led2
+              - binary_sensor.is_on: led3
+              - binary_sensor.is_off: led4
+          then:
+            - switch.turn_on: slct
+            - delay: 250ms
+
+  - id: chnnl_5
+    then:
+      - while:
+          condition:
+            or:
+              - binary_sensor.is_off: led1
+              - binary_sensor.is_off: led2
+              - binary_sensor.is_off: led3
+              - binary_sensor.is_off: led4
+          then:
+            - switch.turn_on: slct
+            - delay: 250ms
+
+switch:
+  - platform: restart
+    name: "${device_name}_restart"
+
+  - platform: gpio
+    name: "${device_name} Program"
+    id: program
+    pin:
+      number: GPIO32
+      mode: OUTPUT
+      inverted: yes
+
+  - platform: gpio
+    id: up
+    pin:
+      number: GPIO27
+      mode: OUTPUT
+      inverted: yes
+    on_turn_on:
+      - delay: 500ms
+      - switch.turn_off: up
+      
+  - platform: gpio
+    id: stop
+    pin:
+      number: GPIO25
+      mode: OUTPUT
+      inverted: yes
+    on_turn_on:
+      - delay: 500ms
+      - switch.turn_off: stop
+      
+  - platform: gpio
+    id: down
+    pin:
+      number: GPIO26
+      mode: OUTPUT
+      inverted: yes
+    on_turn_on:
+      - delay: 500ms
+      - switch.turn_off: down
+      
+  - platform: gpio
+    id: slct
+    pin:
+      number: GPIO33
+      inverted: yes
+    on_turn_on:
+      - delay: 100ms
+      - switch.turn_off: slct
+
+binary_sensor:
+  - platform: gpio
+    id: led1
+    pin:
+      number: GPIO36
+      mode: INPUT_PULLDOWN
+      inverted: yes
+    filters:
+      - delayed_off: 100ms
+
+  - platform: gpio
+    id: led2
+    pin:
+      number: GPIO39
+      mode: INPUT_PULLDOWN
+      inverted: yes
+    filters:
+      - delayed_off: 100ms
+
+  - platform: gpio
+    id: led3
+    pin:
+      number: GPIO34
+      mode: INPUT_PULLDOWN
+      inverted: yes
+    filters:
+      - delayed_off: 100ms
+
+  - platform: gpio
+    id: led4
+    pin:
+      number: GPIO35
+      mode: INPUT_PULLDOWN
+      inverted: yes
+    filters:
+      - delayed_off: 100ms
+
+cover:
+  - platform: template
+    device_class: shutter
+    name: "Babykamer"
+    assumed_state: true
+    optimistic: true
+    open_action:
+      - script.execute: chnnl_1
+      - script.wait: chnnl_1
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: chnnl_1
+      - script.wait: chnnl_1
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: chnnl_1
+      - script.wait: chnnl_1
+      - switch.turn_on: down
+
+  - platform: template
+    device_class: shutter
+    name: "Studeerkamer"
+    assumed_state: true
+    optimistic: true
+    open_action:
+      - script.execute: chnnl_2
+      - script.wait: chnnl_2
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: chnnl_2
+      - script.wait: chnnl_2
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: chnnl_2
+      - script.wait: chnnl_2
+      - switch.turn_on: down
+
+  - platform: template
+    device_class: shutter
+    name: "Slaapkamer"
+    assumed_state: true
+    optimistic: true
+    open_action:
+      - script.execute: chnnl_3
+      - script.wait: chnnl_3
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: chnnl_3
+      - script.wait: chnnl_3
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: chnnl_3
+      - script.wait: chnnl_3
+      - switch.turn_on: down
+
+  - platform: template
+    device_class: shutter
+    name: "Zolder/Studeerkamer"
+    assumed_state: true
+    optimistic: true
+    open_action:
+      - script.execute: chnnl_4
+      - script.wait: chnnl_4
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: chnnl_4
+      - script.wait: chnnl_4
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: chnnl_4
+      - script.wait: chnnl_4
+      - switch.turn_on: down 
+
+  - platform: template
+    device_class: shutter
+    name: "Alles"
+    assumed_state: true
+    optimistic: true
+    open_action:
+      - script.execute: chnnl_5
+      - script.wait: chnnl_5
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: chnnl_5
+      - script.wait: chnnl_5
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: chnnl_5
+      - script.wait: chnnl_5
+      - switch.turn_on: down

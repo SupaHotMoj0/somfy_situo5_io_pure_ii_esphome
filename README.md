@@ -1,42 +1,325 @@
-# Somfy IO remote control using Situo 5 io remote and ESP32
-Control Somfy IO shutters using the PCB out of a Situo 5 io remote and an ESP32
+<h1 style="text-align:left;">Somfy Situo 5 IO Pure II - ESPHome Integration</h1> [Guide currently incomplete]
 
-## Why?
-Contrary to the RTS models, there appears to be no open source implementation of the IO homecontrol protocol. Somfo's Connexoon and Tahoma home control boxes are expensive and the API is dependent on connectivity to the vendor's servers. I went for the workaround of controlling an original Somfy remote control using an ESP32.
+<p style="text-align:left;">
+  <img src="https://img.shields.io/github/license/SupaHotMoj0/somfy_situo5_io_pure_ii_esphome?style=flat-square" alt="License">
+  <img src="https://img.shields.io/github/stars/SupaHotMoj0/somfy_situo5_io_pure_ii_esphome?style=flat-square" alt="Stars">
+  <img src="https://img.shields.io/github/forks/SupaHotMoj0/somfy_situo5_io_pure_ii_esphome?style=flat-square" alt="Forks">
+</p>
+
+<hr>
+
+<h2 style="text-align:left;">Table of Contents</h2>
+<ol style="text-align:left;">
+  <li><a href="#introduction">Introduction</a></li>
+  <li><a href="#why-use-this-mod">Why Use This Mod?</a></li>
+  <li><a href="#requirements">Requirements</a>
+    <ul>
+      <li><a href="#hardware">Hardware</a></li>
+      <li><a href="#software">Software</a></li>
+    </ul>
+  </li>
+  <li><a href="#hardware-setup">Hardware Setup</a>
+    <ul>
+      <li><a href="#disassembly--wiring">Disassembly &amp; Wiring</a></li>
+      <li><a href="#power--voltage">Power &amp; Voltage</a></li>
+    </ul>
+  </li>
+  <li><a href="#esphome-configuration">ESPHome Configuration</a>
+    <ul>
+      <li><a href="#key-features">Key Features</a></li>
+      <li><a href="#installation-steps">Installation Steps</a></li>
+      <li><a href="#multi-channel-example">Multi-Channel Example</a></li>
+      <li><a href="#single-channel-example">Single-Channel Example</a></li>
+    </ul>
+  </li>
+</ol>
+
+<hr>
+
+<h2 id="introduction" style="text-align:left;">Introduction</h2>
+<p style="text-align:left;">
+  This repository shows how to <strong>mod</strong> a Somfy Situo 5 IO Pure II remote to be controlled by an ESP32.
+  By mapping the remote’s buttons to GPIO pins and reading LEDs (to detect active channels), you can seamlessly operate
+  multiple shutters via <strong>ESPHome</strong>—all within <strong>Home Assistant</strong>.
+</p>
+
+<hr>
+
+<h2 id="why-use-this-mod" style="text-align:left;">Why Use This Mod?</h2>
+<ul style="text-align:left;">
+  <li><strong>Local Control</strong>: Zero dependency on vendor cloud services.</li>
+  <li><strong>Cost-Effective</strong>: No expensive hubs.</li>
+  <li><strong>Extendable</strong>: ESPHome supports additional sensors, automations, etc.</li>
+</ul>
+
+<hr>
+
+<h2 id="requirements" style="text-align:left;">Requirements</h2>
+
+<h3 id="hardware" style="text-align:left;">Hardware</h3>
+<ul style="text-align:left;">
+  <li><strong>Somfy Situo 5 IO Pure II Remote</strong><br>
+      Prefer an older model with larger solder pads.</li>
+  <li><strong>ESP32 Board</strong> (e.g., NodeMCU-32S)<br>
+      Enough GPIO (and possibly ADC) pins for button/LED connections.</li>
+  <li>Soldering iron, jumper wires, and basic tools.</li>
+</ul>
+
+<h3 id="software" style="text-align:left;">Software</h3>
+<ul style="text-align:left;">
+  <li><strong>ESPHome</strong> (Home Assistant add-on or standalone CLI)</li>
+  <li><strong>Home Assistant</strong> (recommended)</li>
+  <li><strong>Code Editor</strong> Like Sublime or Notepad (optional)</li>
+</ul>
+
+<hr>
+
+<h2 id="hardware-setup" style="text-align:left;">Hardware Setup</h2>
+
+<h3 id="disassembly--wiring" style="text-align:left;">Disassembly &amp; Wiring</h3>
+<ol style="text-align:left;">
+  <li><strong>Remove PCB</strong>: Carefully extract the remote’s PCB.</li>
+  <li><strong>Remove Battery</strong>: The ESP32’s 3.3V line powers the remote.</li>
+  <li><strong>Button Pads</strong> (Up, Stop/My, Down, Select):
+    <ul>
+      <li>The inner circle is ground, outer circle is the signal pin.</li>
+      <li>Solder a wire from each outer circle to ESP32 GPIO (pull-down).</li>
+    </ul>
+  </li>
+  <li><strong>Channel LEDs</strong>:
+    <ul>
+      <li>Solder wires to each LED pad; connect them to ADC or digital inputs on the ESP32.</li>
+      <li>These indicate which channel is active.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="power--voltage" style="text-align:left;">Power &amp; Voltage</h3>
+<ul style="text-align:left;">
+  <li><strong>3.3V from the ESP32</strong> → remote’s battery terminals.</li>
+  <li>Ensure the ESP32 regulator can handle the remote’s current draw.</li>
+</ul>
+
+<hr>
+
+<h2 id="esphome-configuration" style="text-align:left;">ESPHome Configuration</h2>
+
+<h3 id="key-features" style="text-align:left;">Key Features</h3>
+<ul style="text-align:left;">
+  <li><strong>Dynamic Channel Selection</strong>: Press “Select” until the correct channel LED is lit.</li>
+  <li><strong>Real-Time Feedback</strong>: Detect active channel via LED voltage changes.</li>
+  <li><strong>Comprehensive Setup</strong>: Wi-Fi, OTA, MQTT, and optional web server are supported.</li>
+</ul>
+
+<h3 id="installation-steps" style="text-align:left;">Installation Steps</h3>
+<ol style="text-align:left;">
+  <li><strong>Clone or Download</strong> this repository.</li>
+  <li><strong>Configure</strong> the provided YAML (Wi-Fi, GPIO pins, etc.).</li>
+  <li><strong>Flash</strong> using ESPHome (Home Assistant add-on or CLI).</li>
+</ol>
+
+<hr>
+
+<h3 id="multi-channel-example" style="text-align:left;">Multi-Channel Example</h3>
+<p style="text-align:left;">
+  Below is a <strong>simplified</strong> YAML for controlling multiple channels. Adjust the pins, add channels as needed.
+</p>
+
+<pre style="text-align:left;">
+<code># multi_channel.yaml
+ 
+esphome:
+  name: somfy_multi
+  platform: ESP32
+  board: nodemcu-32s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  password: !secret ota_pwd
+
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_usr
+  password: !secret mqtt_pwd
+
+logger:
+
+script:
+  - id: channel_1
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 1";'
+          then:
+            - switch.turn_on: select_btn
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 1"
+
+  - id: channel_2
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 2";'
+          then:
+            - switch.turn_on: select_btn
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 2"
+
+switch:
+  - platform: gpio
+    id: select_btn
+    pin: GPIO32
+    inverted: true
+    on_turn_on:
+      - delay: 100ms
+      - switch.turn_off: select_btn
+
+  - platform: gpio
+    id: up_btn
+    pin: GPIO25
+    inverted: true
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: up_btn
+
+  - platform: gpio
+    id: stop_btn
+    pin: GPIO27
+    inverted: true
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: stop_btn
+
+  - platform: gpio
+    id: down_btn
+    pin: GPIO26
+    inverted: true
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: down_btn
+
+text_sensor:
+  - platform: template
+    id: selected_channel
+    name: "Selected Channel"
+    update_interval: never
+
+cover:
+  - platform: template
+    name: "Channel 1 Shutter"
+    open_action:
+      - script.execute: channel_1
+      - script.wait: channel_1
+      - switch.turn_on: up_btn
+    stop_action:
+      - script.execute: channel_1
+      - script.wait: channel_1
+      - switch.turn_on: stop_btn
+    close_action:
+      - script.execute: channel_1
+      - script.wait: channel_1
+      - switch.turn_on: down_btn
+</code>
+</pre>
+
+<hr>
+
+<h3 id="single-channel-example" style="text-align:left;">Single-Channel Example</h3>
+<p style="text-align:left;">
+  For just one shutter, skip the channel selection and wire Up/Stop/Down directly:
+</p>
+<pre style="text-align:left;">
+<code># single_channel.yaml
+ 
+esphome:
+  name: somfy_single
+  platform: ESP32
+  board: nodemcu-32s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+
+api:
+  encryption:
+    key: !secret api_key
+ota:
+  password: !secret ota_pwd
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_usr
+  password: !secret mqtt_pwd
+
+switch:
+  - platform: gpio
+    id: up_btn
+    pin: GPIO25
+    inverted: true
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: up_btn
+
+  - platform: gpio
+    id: stop_btn
+    pin: GPIO27
+    inverted: true
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: stop_btn
+
+  - platform: gpio
+    id: down_btn
+    pin: GPIO26
+    inverted: true
+    on_turn_on:
+      - delay: 400ms
+      - switch.turn_off: down_btn
+
+cover:
+  - platform: template
+    name: "Somfy Single Shutter"
+    open_action:
+      - switch.turn_on: up_btn
+    stop_action:
+      - switch.turn_on: stop_btn
+    close_action:
+      - switch.turn_on: down_btn
+</code>
+</pre>
 
 
-##  Requirements
-- Somfy Situo 5 io remote. The old models are great because they have nice big solder pads. I used a Situo 5 io Pure GX508 that I had laying around. The >2018 model (Pure II) has a more modern PCB that would be much harder to solder.
-- ESP32 (to adapt for the ESP8266, you may need to add a voltage divider for the ADC pins)
-- [MicroPython](http://docs.micropython.org/en/latest/esp32/quickref.html)
-- Optional: [PyCharm with the MicroPython plugin](https://github.com/vlasovskikh/intellij-micropython) for easy development and flashing
+<hr>
 
+<h2 id="web-interface" style="text-align:left;">Web Interface</h2>
+<p style="text-align:left;">
+  If you add <code>web_server:</code> to your YAML, each shutter can be operated from your browser at
+  <code>http://[ESP_IP]</code>. Commands can also be sent via URL, for example:
+  <br><code>http://[ESP_IP]/2/down</code> to lower channel 2.
+</p>
 
-## Hardware
-We want to the ESP32 to do 2 things:
- 1. Act as virtual fingers on the 4 remote control buttons (I programmed the remote already before disassembly, so I don't care about the program button on the back).
- 2. The channel is changed by pushing the select button repeatedly. To know which channel is active, we need to push the select button once and read the LEDs on the remote.
+<hr>
 
-Instructions:
-- Remove the PCB from the remote.
-- Remove the CR2032 battery, we will power the remote from the ESP32 by connecting 3.3V and ground from the ESP to the battery holder on the remote.
-- There are 4 buttons on the front. The inner circle is a common ground, the outer circle are (high) pins coming from the chip. Pushing the button pulls the pin to the ground, which triggers the action. Solder a wire to the outer circle of each of the 4 buttons and connect to GPIO pins on the ESP32 and use internal pull-down resistors on the ESP32. The default value for these pins is high and when you pull it low, it will trigger a button press on the remote's IC.
-- The LED have +3V on a common rail and the other side (on the edge of the board) is connected to pins on the chip. There are easily accessible solder pads for the LED's on the bottom of the board. Solder 4 wires and connect to ESP32 GPIO pins that support ADC (analogue to digital converter).
+<h2 id="home-assistant-integration" style="text-align:left;">Home Assistant Integration</h2>
+<ol style="text-align:left;">
+  <li><strong>Auto Discovery</strong>: If MQTT and or the ESPHome is enabled, shutters appear automatically.</li>
+</ol>
 
-![remote](img/remote.png) ![front](img/remote_front.png) ![back](img/remote_back.png) ![breadboard prototype](img/breadboard_prototype.png)
+<hr>
 
-
-## Firmware (esp32)
-The [firmware](esp32/) connects to wifi, sets the output pins as high and reads the input (LED) pins as analogue-to-digital input. It presents a simple web interface to operate the five channels of the remote. When an action is triggered, the channel will first be changed if needed and then the button (up, "my", down) is actuated.
-
-Rename config_example.py to config.py and change settings for your setup (wifi SSID/password and the ESP32 pins used)
-
-Upload the 3 files to the ESP32, e.g. using [ampy](https://github.com/scientifichackers/ampy) or [rshell](https://github.com/dhylands/rshell)
-
-
-## Web interface
-A very basic web interface is available using http on the IP address. Push the "Up", "My" or "Down" button next to the channel number.
-![webui](img/webui.png)
-
-Actions can also be called by directly accessing the url http://IP.address/channel/action, e.g. http://192.168.1.99/4/up to send the "Up" command on channel 4.
-
+<h2 id="limitations" style="text-align:left;">Limitations</h2>
+<ul style="text-align:left;">
+  <li><strong>Soldering Challenges</strong>: The newer Pure II PCB pads can be small.</li>
+  <li><strong>No Native IO Protocol</strong>: We rely on the remote’s internal logic</li>
+  <li><strong>Continuous Power</strong>: The ESP32 must remain powered.</li>
+</ul>

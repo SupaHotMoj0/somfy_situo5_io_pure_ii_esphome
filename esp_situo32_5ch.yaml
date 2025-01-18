@@ -1,5 +1,5 @@
 ###############################################################################
-# Multi-Channel Somfy Remote Controller (ESP32)
+# Multi-Channel Somfy Remote Controller (ESP32) - 5 Channels
 # - Dynamic channel selection with feedback to Home Assistant
 ###############################################################################
 
@@ -21,23 +21,29 @@ wifi:
   ap:  # Fallback AP if Wi-Fi is unavailable
     ssid: "${device_name} AP"
     password: !secret fallback_pwd
-captive_portal:  # Required for fallback AP
+
+captive_portal:
+
 api:
   encryption:
     key: !secret api_key
+
 ota:
   password: !secret ota_pwd
+
 mqtt:
   broker: !secret mqtt_broker
   username: !secret mqtt_usr
   password: !secret mqtt_pwd
   topic_prefix: ${device_name}
+
 web_server:
   port: 80
   auth:
     username: !secret web_usr
     password: !secret web_pwd
-logger:  # Enable ESP logs
+
+logger:
 
 ###############################################################################
 # Scripts - Dynamic channel switching logic
@@ -78,6 +84,30 @@ script:
       - text_sensor.template.publish:
           id: selected_channel
           state: "Channel 3"
+
+  - id: channel_4
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 4";'
+          then:
+            - switch.turn_on: select_channel
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 4"
+
+  - id: channel_5
+    then:
+      - while:
+          not:
+            lambda: 'return id(selected_channel).state == "Channel 5";'
+          then:
+            - switch.turn_on: select_channel
+            - delay: 250ms
+      - text_sensor.template.publish:
+          id: selected_channel
+          state: "Channel 5"
 
 ###############################################################################
 # Switches - GPIO mappings for Somfy buttons
@@ -121,6 +151,7 @@ switch:
 
 ###############################################################################
 # Sensors & Feedback - Monitor active channel via LED states
+# NOTE: Adjust GPIO pins for LED4, LED5 as needed.
 ###############################################################################
 binary_sensor:
   - platform: gpio
@@ -136,6 +167,16 @@ binary_sensor:
   - platform: gpio
     id: led3
     pin: GPIO34
+    inverted: yes
+
+  - platform: gpio
+    id: led4
+    pin: GPIO35
+    inverted: yes
+
+  - platform: gpio
+    id: led5
+    pin: GPIO33
     inverted: yes
 
 text_sensor:
@@ -170,4 +211,40 @@ cover:
       - switch.turn_on: stop
     close_action:
       - script.execute: channel_2
+      - switch.turn_on: down
+
+  - platform: template
+    name: "Channel 3 Shutter"
+    open_action:
+      - script.execute: channel_3
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: channel_3
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: channel_3
+      - switch.turn_on: down
+
+  - platform: template
+    name: "Channel 4 Shutter"
+    open_action:
+      - script.execute: channel_4
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: channel_4
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: channel_4
+      - switch.turn_on: down
+
+  - platform: template
+    name: "Channel 5 Shutter"
+    open_action:
+      - script.execute: channel_5
+      - switch.turn_on: up
+    stop_action:
+      - script.execute: channel_5
+      - switch.turn_on: stop
+    close_action:
+      - script.execute: channel_5
       - switch.turn_on: down
